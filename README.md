@@ -26,18 +26,9 @@ When creating a proposal, the creator will enter a voting expiration time, and P
 
 ## 5. Voting Power Snapshot
 
-Power Oracle will request raw data from FileCoin, GitHub and other data sources to calculate role identity and voting power and save them into Power Oracle contracts. SP and Client respectively invoke the `PowerAPI.minerRawPower(filActorld)` and `DataCapAPI.balance(filActorld)` interfaces to retrieve power. Power Oracle contracts will store 60 days history of voting power. When users vote, only the percentage is recorded, not the actual voting power. During the vote counting process, a random weight will be selected from the 60 days history and multiplied by the percentage to calculate the vote.
+When creating a proposal, Power Voting dApp will get the current `block.height` and store it together with proposal content on the blockchain. When a user votes, Power Voting dApp will obtain the wBTC balance of the user's `address` corresponding to the `block.height` when the proposal was created at, and then use the asset amount as the voting power to vote.
 
-## 6. Power Voting Flowchart
-
-![](img/flowchart.png)
-
-## 7. Power Voting Sequence Chart
+## 6. Power Voting Sequence Chart
 
 ![](img/timing_diagram.png)
-
-## 8. UCAN Design
-
-![](img/ucan1.png)
-![](img/ucan2.png)
 

@@ -78,6 +78,7 @@ const Home = () => {
     const chainId = chain?.id || 0;
     const { getLatestId, getProposal } = await useStaticContract(chainId);
     const res = await getLatestId();
+    console.log(res.data.toNumber());
     const total = res.data.toNumber();
     setTotal(total);
     const offset = (page - 1) * pageSize;
@@ -196,6 +197,7 @@ const Home = () => {
    * @param list
    */
   const renderList = (list: ProposalList[]) => {
+
     if (proposalStatus !== VOTE_ALL_STATUS) {
       list = list.filter(item => item.proposalStatus === proposalStatus);
       if (list.length === 0) {
@@ -210,7 +212,10 @@ const Home = () => {
       }
     }
     return list.map((item: ProposalList, index: number) => {
+      const total = item.option?.reduce(((acc: number, current: any) => acc + current.count), 0);
+      const max = Math.max(...item.option?.map((option: any) => option.count));
       const proposal = VOTE_LIST?.find((proposal: ProposalFilter) => proposal.value === item.proposalStatus);
+
       return (
         <div
           key={item.cid + index}
@@ -247,28 +252,24 @@ const Home = () => {
             {item.descriptions}
           </div>
           {
-            item.proposalStatus === COMPLETED_STATUS &&
-              <div>
-                {
-                  item.option?.map((option: ProposalOption, index: number) => {
-                    return (
-                      <div className="relative mt-1 w-full" key={option.name + index}>
-                        <div className="absolute ml-3 flex items-center leading-[43px] text-white">
-                          {
-                            option.count > 0 &&
-                              <svg viewBox="0 0 24 24" width="1.2em" height="1.2em" className="-ml-1 mr-2 text-sm">
-                                  <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"
-                                        strokeWidth="2" d="m5 13l4 4L19 7"></path>
-                              </svg>
-                          }
-                          {option.name}</div>
-                        <div className="absolute right-0 mr-3 leading-[40px] text-white">{option.count}%</div>
-                        <div className="h-[40px] rounded-md bg-[#1b2331]" style={{width: `${option.count}%`}}></div>
-                      </div>
-                    )
-                  })
-                }
-              </div>
+            item.option?.map((option: any, index: number) => {
+              const percent = option.count ? ((option.count / total) * 100).toFixed(2) : 0;
+              return (
+                <div className="relative mt-1 w-full" key={option.name + index}>
+                  <div className="absolute ml-3 flex items-center leading-[43px] text-white">
+                    {
+                      option.count > 0 && option.count === max &&
+                        <svg viewBox="0 0 24 24" width="1.2em" height="1.2em" className="-ml-1 mr-2 text-sm">
+                            <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"
+                                  strokeWidth="2" d="m5 13l4 4L19 7"></path>
+                        </svg>
+                    }
+                    {option.name} <span className="ml-2 text-[#8b949e]">{option.count} Vote(s)</span></div>
+                  <div className="absolute right-0 mr-3 leading-[40px] text-white">{percent}%</div>
+                  <div className="h-[40px] rounded-md bg-[#1b2331]" style={{width: `${percent}%`}}></div>
+                </div>
+              )
+            })
           }
           <div className="text-[#8B949E] text-sm mt-4">
 

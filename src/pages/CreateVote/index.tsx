@@ -90,7 +90,8 @@ const CreateVote = () => {
    * @param values
    */
   const onSubmit = async (values: any) => {
-    setLoading(true)
+    setLoading(true);
+
     const offset =  dayjs().tz(values.timezone).utcOffset() - dayjs().utcOffset();
     const expTimestamp = dayjs(values.expTime).add(offset, 'minute').unix();
     const currentTime = dayjs().unix();

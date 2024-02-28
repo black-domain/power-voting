@@ -13,26 +13,19 @@
 // limitations under the License.
 
 import React,{ useState, useEffect, useRef } from "react";
-import {useRoutes, useNavigate, useLocation, Link} from "react-router-dom";
-import axios from "axios";
+import {useRoutes, useLocation, Link} from "react-router-dom";
 import {
   ConnectButton,
 } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
-import { useNetwork, useAccount } from "wagmi";
 import routes from "./router";
 import Footer from './components/Footer';
 import "@rainbow-me/rainbowkit/styles.css";
 import "./common/styles/reset.less";
 import "tailwindcss/tailwind.css";
-import {useStaticContract} from "./hooks";
 import Loading from "./components/Loading";
 
-
 const App: React.FC = () => {
-  const { chain } = useNetwork();
-  const { address} = useAccount();
-  const navigate = useNavigate();
   const location = useLocation();
   const element = useRoutes(routes);
   const [showButton, setShowButton] = useState(false);
@@ -48,45 +41,6 @@ const App: React.FC = () => {
   }
 
   const scrollRef = useRef(null);
-
-  const handleDelegate = async () => {
-    setSpinning(true);
-    const chainId = chain?.id || 0;
-    const { getOracleAuthorize }  = await useStaticContract(chainId);
-    const { data: { githubAccount, ucanCid } } = await getOracleAuthorize(address);
-    setSpinning(false);
-    const isGithubType = !!githubAccount;
-    if (ucanCid) {
-      const { data } = await axios.get(`https://${ucanCid}.ipfs.nftstorage.link/`);
-      if (isGithubType) {
-        const regex = /\/([^\/]+)\/([^\/]+)\/git\/blobs\/(\w+)/;
-        const result = data.match(regex);
-        const aud = result[1];
-        navigate('/ucanDelegate/delete', { state: {
-            params: {
-              isGithubType,
-              aud,
-              prf: ''
-            }
-          }
-        });
-      } else {
-        const decodeString = atob(data.split('.')[1]);
-        const payload = JSON.parse(decodeString);
-        const { aud, prf } = payload;
-        navigate('/ucanDelegate/delete', { state: {
-            params: {
-              isGithubType,
-              aud,
-              prf
-            }
-          }
-        });
-      }
-    } else {
-      navigate('/ucanDelegate/add');
-    }
-  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -128,12 +82,6 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className='flex items-center'>
-            <button
-              className="h-[40px] bg-sky-500 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-xl mr-4"
-              onClick={handleDelegate}
-            >
-              UCAN Delegates
-            </button>
             <div className="connect flex items-center">
               <ConnectButton />
             </div>

@@ -17,7 +17,7 @@ module.exports = {
     fallback:{
       "path":require.resolve("path-browserify"),
       "os":require.resolve("os-browserify"),
-      "fs":require.resolve("browserify-fs")
+      "fs":require.resolve("browserify-fs"),
     },
     plugins: [
       new TsconfigPathsPlugin({
@@ -32,8 +32,8 @@ module.exports = {
     historyApiFallback: true,
     proxy: {
       '/api': {
-        target: 'http://192.168.11.94:9999/power_voting',
-        // target: 'http://192.168.3.198:9999/power_voting',
+        target: 'http://192.168.11.94:9000/power_voting',
+        // target: 'http://192.168.3.55:9000/power_voting',
         changeOrigin: true,
         pathRewrite: {
           '^/api': '/api'

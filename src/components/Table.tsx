@@ -13,26 +13,8 @@
 // limitations under the License.
 
 import React, { ReactNode } from 'react';
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { FILECOIN_AUTHORIZE_DOC, FILECOIN_DEAUTHORIZE_DOC, GITHUB_AUTHORIZE_DOC, GITHUB_DEAUTHORIZE_DOC } from "../common/consts";
 
 export default function Table ({ title = '', link= {} as { type: string, action: string, href: string }, list = [] as { name: string, comp: ReactNode }[], subTitle = '' }) {
-  const navigate = useNavigate();
-  const { type, action, href } = link;
-
-  const handleJump = () => {
-    let doc = '';
-    if (type === 'filecoin') {
-      doc = action === 'authorize' ? FILECOIN_AUTHORIZE_DOC : FILECOIN_DEAUTHORIZE_DOC;
-    } else {
-      doc = action === 'authorize' ? GITHUB_AUTHORIZE_DOC : GITHUB_DEAUTHORIZE_DOC;
-    }
-    navigate(href, { state: {
-      doc
-      }
-    });
-  }
 
   return (
     <table className='min-w-full bg-[#273141] rounded text-left'>
@@ -44,13 +26,6 @@ export default function Table ({ title = '', link= {} as { type: string, action:
               {subTitle && (
                 <span className='text-[#8896AA] text-xl px-1'> - {subTitle}</span>
               )}
-              {
-                href && (
-                  <div className='flex items-start cursor-pointer' onClick={handleJump}>
-                    <QuestionCircleOutlined className='text-[#8896AA] text-[16px] ml-2' />
-                  </div>
-                )
-              }
             </div>
           </th>
         </tr>

@@ -48,8 +48,6 @@ const Vote = () => {
 
   const navigate = useNavigate();
   const [options, setOptions] = useState([] as ProposalOption[]);
-  const [minerIds, setMinerIds] = useState(['']);
-  const [minerError, setMinerError] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -65,29 +63,7 @@ const Vote = () => {
     initState();
   }, [chain]);
 
-  const addMinerIdPrefix = (minerIds: number[]) => {
-    return minerIds.map(minerId => `f0${minerId}`);
-  }
-
-  const removeMinerIdPrefix = (minerIds: string[]) => {
-    return minerIds.map(minerId => {
-      const str = minerId.replace(/f0/g, '');
-      if (isNaN(Number(str))) {
-        setMinerError(true);
-        return 0;
-      } else {
-        setMinerError(false);
-        return Number(str)
-      }
-    });
-  }
-
   const initState = async () => {
-    const { getMinerIds } = await useStaticContract(chainId);
-    const { code, data: { minerIds } } = await getMinerIds(address);
-    if (code === 200) {
-      setMinerIds(addMinerIdPrefix(minerIds.map((id: any) => id.toNumber())));
-    }
     const res = await axios.get(`https://${cid}.ipfs.nftstorage.link/`);
     const data = res.data;
     let voteStatus = null;
@@ -144,10 +120,6 @@ const Vote = () => {
     if (countIndex < 0) {
       message.warning(CHOOSE_VOTE_MSG);
     } else {
-      if (minerError) {
-        message.warning(WRONG_MINER_ID_MSG);
-        return;
-      }
       setLoading(true);
       // vote params
       let params: string[][] = [];
@@ -160,11 +132,10 @@ const Vote = () => {
       }
       const encryptValue = await handleEncrypt(params);
       const optionId = await getIpfsId(encryptValue);
-      const ids = removeMinerIdPrefix(minerIds);
 
       if (isConnected) {
         const { voteApi } = useDynamicContract(chainId);
-        const res = await voteApi(Number(id), optionId, ids);
+        const res = await voteApi(Number(id), optionId);
         if (res.code === 200) {
           message.success(VOTE_SUCCESS_MSG, 3);
           setTimeout(() => {
@@ -179,11 +150,6 @@ const Vote = () => {
         openConnectModal && openConnectModal()
       }
     }
-  }
-
-  const handleMinerChange = (value: string) => {
-    const arr = value.split(',');
-    setMinerIds(arr);
   }
 
   const handleOptionChange = (index: number, count: number) => {
@@ -303,12 +269,6 @@ const Vote = () => {
           {
             votingData?.voteStatus === IN_PROGRESS_STATUS &&
               <div className='mt-5'>
-                  <Input
-                      defaultValue={minerIds.toString()}
-                      onChange={(e) => { handleMinerChange(e.target.value) }}
-                      className='form-input w-full rounded bg-[#212B3C] border border-[#313D4F] text-white'
-                      placeholder='Input minerId'
-                  />
                   <div className="border-[#313D4F] mt-6 border-skin-border bg-skin-block-bg text-base md:rounded-xl md:border border-solid">
                       <div className="group flex h-[57px] !border-[#313D4F] justify-between items-center border-b px-4 pb-[12px] pt-3 border-solid">
                           <h4 className="text-xl">

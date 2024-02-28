@@ -20,6 +20,8 @@ Download the source code with the following command:
 git clone https://github.com/black-domain/power-voting.git
 ```
 
+And then switch to bob branch.
+
 ### 3.Install Dependencies
 
 Install dependencies with the following command:
@@ -35,18 +37,13 @@ After yarn, you will get a 'node_modules' folder in the root directory.
 
 ### 4.Update Smart Contract Address And ABI
 
-Deploying PowerVoting and Oracle contract on Filecoin main network and replace the following address in ‘/src/common/consts.ts’
+Deploying PowerVoting contract on bobChain test network and replace the following address in ‘/src/common/consts.ts’.
 
-<img src="img/mainnet.png" style="zoom:50%;" />
+<img src="img/contract_address.png" style="zoom:50%;" />
 
-If you deploy the contract on Filecoin test network Calibration, you should replace the following address in ‘/src/common/consts.ts’
-
-<img src="img/testnet.png" style="zoom:50%;" />
-
-If you modify the contract code, you need to update the following abi in ‘/src/common/abi’
+If you modify the contract code, you need to update the following abi in ‘/src/common/abi’.
 
 <img src="img/abi.png" style="zoom:50%;" />
-
 
 
 ### 5. Update IPFS Storage Key And Wallet Connect Project Id
@@ -58,7 +55,6 @@ Create wallet connect project id by https://www.rainbowkit.com/docs/migration-gu
 Replace the following keys in ‘/src/common/consts.ts’
 
 <img src="img/key.png" style="zoom:50%;" />
-
 
 
 ### 6.Build And Package

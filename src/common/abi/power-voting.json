@@ -260,45 +260,6 @@
   },
   {
     "inputs": [],
-    "name": "ADD_F4_TASK_SELECTOR",
-    "outputs": [
-      {
-        "internalType": "bytes4",
-        "name": "",
-        "type": "bytes4"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "ADD_MINER_IDS_SELECTOR",
-    "outputs": [
-      {
-        "internalType": "bytes4",
-        "name": "",
-        "type": "bytes4"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "ADD_TASK_SELECTOR",
-    "outputs": [
-      {
-        "internalType": "bytes4",
-        "name": "",
-        "type": "bytes4"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "UPGRADE_INTERFACE_VERSION",
     "outputs": [
       {
@@ -380,29 +341,10 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "oracleAddress",
-        "type": "address"
-      }
-    ],
+    "inputs": [],
     "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "oracleContract",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -509,32 +451,6 @@
   {
     "inputs": [
       {
-        "internalType": "string",
-        "name": "ucanCid",
-        "type": "string"
-      }
-    ],
-    "name": "ucanDelegate",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "oracleAddress",
-        "type": "address"
-      }
-    ],
-    "name": "updateOracleContract",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "newImplementation",
         "type": "address"
@@ -561,11 +477,6 @@
         "internalType": "string",
         "name": "info",
         "type": "string"
-      },
-      {
-        "internalType": "uint64[]",
-        "name": "minerIds",
-        "type": "uint64[]"
       }
     ],
     "name": "vote",

@@ -14,19 +14,17 @@
 
 import { ethers } from "ethers";
 import { NFTStorage, Blob } from 'nft.storage';
-import fileCoinAbi from "../common/abi/power-voting.json";
-import oracleAbi from "../common/abi/oracle.json";
+import bobAbi from "../common/abi/power-voting.json";
 import {
-  powerVotingMainNetContractAddress,
-  oracleCalibrationContractAddress,
+
   contractAddressList,
   NFT_STORAGE_KEY,
-  oracleMainNetContractAddress,
+  bobContractAddress,
   SUCCESS_INFO,
   ERROR_INFO,
   OPERATION_FAILED_MSG,
 } from "../common/consts";
-import { filecoin, filecoinCalibration } from 'wagmi/chains';
+import { bobChain } from "../common/consts";
 
 const decodeError = (data: string) => {
   const errorData = data.substring(0, 2) + data.substring(10);
@@ -63,13 +61,11 @@ const handleReturn = ({ type, data }) => {
 }
 
 export const useStaticContract = async (chainId: number) => {
-  const rpcUrl = chainId === filecoin.id ? filecoin.rpcUrls.default.http[0] : filecoinCalibration.rpcUrls.default.http[0];
+  const rpcUrl = bobChain.rpcUrls.default.http[0];
   const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
 
-  const powerVotingContractAddress = contractAddressList.find(item => item.id === chainId)?.address || powerVotingMainNetContractAddress;
-  const powerVotingContract = new ethers.Contract(powerVotingContractAddress, fileCoinAbi, provider);
-  const oracleContractAddress = chainId === filecoin.id ? oracleMainNetContractAddress : oracleCalibrationContractAddress;
-  const oracleContract = new ethers.Contract(oracleContractAddress, oracleAbi, provider);
+  const powerVotingContractAddress = contractAddressList.find(item => item.id === chainId)?.address || bobContractAddress;
+  const powerVotingContract = new ethers.Contract(powerVotingContractAddress, bobAbi, provider);
 
   /**
    * get latest proposal id
@@ -110,60 +106,18 @@ export const useStaticContract = async (chainId: number) => {
     }
   }
 
-  /**
-   * get UCAN data
-   * @param address
-   */
-  const getOracleAuthorize = async (address: any) => {
-    try {
-      const data = await oracleContract.voterToInfo(address);
-      return handleReturn({
-        type: SUCCESS_INFO,
-        data
-      })
-    } catch (e) {
-      console.log(e);
-      return handleReturn({
-        type: ERROR_INFO,
-        data: e
-      })
-    }
-  }
-
-  /**
-   * get miner ID
-   * @param address
-   */
-  const getMinerIds = async (address: any) => {
-    try {
-      const data = await oracleContract.getVoterInfo(address);
-      return handleReturn({
-        type: SUCCESS_INFO,
-        data
-      })
-    } catch (e) {
-      console.log(e);
-      return handleReturn({
-        type: ERROR_INFO,
-        data: e
-      })
-    }
-  }
-
   return {
     getLatestId,
     getProposal,
-    getOracleAuthorize,
-    getMinerIds
   }
 }
 
 export const useDynamicContract = (chainId: number) => {
-  const contractAddress = contractAddressList.find(item => item.id === chainId)?.address || powerVotingMainNetContractAddress;
+  const contractAddress = contractAddressList.find(item => item.id === chainId)?.address || bobContractAddress;
   // @ts-ignore
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
-  const contract = new ethers.Contract(contractAddress, fileCoinAbi, signer);
+  const contract = new ethers.Contract(contractAddress, bobAbi, signer);
 
   /**
    * create proposal
@@ -192,28 +146,9 @@ export const useDynamicContract = (chainId: number) => {
    * @param proposalId
    * @param optionId
    */
-  const voteApi = async (proposalId: number, optionId: string, minerId: number[]) => {
+  const voteApi = async (proposalId: number, optionId: string) => {
     try {
-      const data = await contract.vote(proposalId, optionId, minerId);
-      return handleReturn({
-        type: SUCCESS_INFO,
-        data
-      })
-    } catch (e) {
-      return handleReturn({
-        type: ERROR_INFO,
-        data: e
-      })
-    }
-  }
-
-  /**
-   * UCAN authorize or deAuthorize
-   * @param ucanCid
-   */
-  const ucanDelegate = async (ucanCid: string) => {
-    try {
-      const data = await contract.ucanDelegate(ucanCid);
+      const data = await contract.vote(proposalId, optionId);
       return handleReturn({
         type: SUCCESS_INFO,
         data
@@ -227,7 +162,6 @@ export const useDynamicContract = (chainId: number) => {
   }
 
   return {
-    ucanDelegate,
     createVotingApi,
     voteApi,
   }

@@ -15,9 +15,6 @@
 import React from "react";
 import Home from "../pages/Home";
 import CreateVote from "../pages/CreateVote";
-import UcanDelegateAdd from "../pages/UcanDelegate/add/index";
-import UcanDelegateDelete from "../pages/UcanDelegate/delete/index";
-import UcanDelegateHelp from "../pages/UcanDelegate/help/index";
 import Vote from "../pages/Vote";
 import VotingResults from "../pages/VotingResults";
 
@@ -29,18 +26,6 @@ const routes = [
   {
     path: "/createVote",
     element: <CreateVote />,
-  },
-  {
-    path: "/ucanDelegate/add",
-    element: <UcanDelegateAdd />,
-  },
-  {
-    path: "/ucanDelegate/delete",
-    element: <UcanDelegateDelete />,
-  },
-  {
-    path: "/ucanDelegate/help",
-    element: <UcanDelegateHelp />,
   },
   {
     path: "/vote/:id/:cid",
