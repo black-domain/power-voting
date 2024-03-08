@@ -14,22 +14,43 @@
 
 import React,{ useState, useEffect, useRef } from "react";
 import {useRoutes, useLocation, Link} from "react-router-dom";
-import {
-  ConnectButton,
-} from "@rainbow-me/rainbowkit";
+import {ConnectButton} from "@rainbow-me/rainbowkit";
+import { message } from 'antd';
 import "@rainbow-me/rainbowkit/styles.css";
-import routes from "./router";
+import {useNetwork, useAccount} from "wagmi";
 import Footer from './components/Footer';
 import "@rainbow-me/rainbowkit/styles.css";
 import "./common/styles/reset.less";
 import "tailwindcss/tailwind.css";
+import routes from "./router";
 import Loading from "./components/Loading";
+import { useAccountAbstraction } from './aa';
+import EllipsisMiddle from "./components/EllipsisMiddle";
+import {useStaticContract} from "./hooks";
+import {HexString} from "./types";
+import {COPY_SUCCESS_MSG, OPERATION_FAILED_MSG} from "./common/consts";
 
 const App: React.FC = () => {
   const location = useLocation();
+  const {chain} = useNetwork();
+  const { address}= useAccount();
   const element = useRoutes(routes);
   const [showButton, setShowButton] = useState(false);
   const [spinning, setSpinning] = useState(false);
+  const { client } = useAccountAbstraction();
+  const [wBTCBalance, setWBTCBalance] = useState(0);
+  const [smartAccount, setSmartAccount] = useState('');
+  const [smartAccountBalance, setSmartAccountBalance] = useState(0);
+
+
+  const getWBTCBalance = async (address: HexString, type: string) => {
+    const chainId = chain?.id || 0;
+    const { getWBTCBalance } = await useStaticContract(chainId);
+    const res = await getWBTCBalance(address);
+    const balance = res.data.toNumber();
+    const number = Math.floor((balance / 100000000) * 100) / 100;
+    type === 'smartAccount' ? setSmartAccountBalance(number) : setWBTCBalance(number);
+  }
 
   const scrollToTop = () => {
     const element = scrollRef.current;
@@ -41,6 +62,16 @@ const App: React.FC = () => {
   }
 
   const scrollRef = useRef(null);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(smartAccount)
+      .then(() => {
+        message.success(COPY_SUCCESS_MSG);
+      })
+      .catch((error) => {
+        message.error(OPERATION_FAILED_MSG);
+      });
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -62,10 +93,24 @@ const App: React.FC = () => {
     scrollToTop();
   }, [location])
 
+  useEffect(() => {
+    const address = client?.smartAccountAddress as HexString;
+    if (address) {
+      setSmartAccount(address);
+      getWBTCBalance(address, 'smartAccount');
+    }
+  }, [client])
+
+  useEffect(() => {
+    if (address) {
+      getWBTCBalance(address, 'account');
+    }
+  }, [address])
+
   return (
     <div className="layout font-body" id='scrollBox' ref={scrollRef}>
       <header className='h-[96px]  bg-[#273141]'>
-        <div className='w-[1000px] h-[96px] mx-auto flex items-center justify-between'>
+        <div className='w-[1280px] h-[96px] mx-auto flex items-center justify-between'>
           <div className='flex items-center'>
             <div className='flex-shrink-0'>
               <Link to='/'>
@@ -83,7 +128,124 @@ const App: React.FC = () => {
           </div>
           <div className='flex items-center'>
             <div className="connect flex items-center">
-              <ConnectButton />
+              <ConnectButton.Custom>
+                {({
+                    account,
+                    chain,
+                    openAccountModal,
+                    openChainModal,
+                    openConnectModal,
+                    authenticationStatus,
+                    mounted,
+                  }) => {
+                  // Note: If your app doesn't use authentication, you
+                  // can remove all 'authenticationStatus' checks
+                  const ready = mounted && authenticationStatus !== 'loading';
+                  const connected =
+                    ready &&
+                    account &&
+                    chain &&
+                    (!authenticationStatus ||
+                      authenticationStatus === 'authenticated');
+                  return (
+                    <div
+                      className='iekbcc0 ju367va ju367v1s'
+                      {...(!ready && {
+                        'aria-hidden': true,
+                        'style': {
+                          opacity: 0,
+                          pointerEvents: 'none',
+                          userSelect: 'none',
+                        },
+                      })}
+                    >
+                      {(() => {
+                        if (!connected) {
+                          return (
+                            <div className='iekbcc0 ju367va ju367v1s'>
+                              <button className='iekbcc0 iekbcc9 ju367v78 ju367v7t ju367v9i ju367vn ju367vei ju367vf3 ju367v16 ju367v1h ju367v2g ju367v8u _12cbo8i3 ju367v8r _12cbo8i4 _12cbo8i6' onClick={openConnectModal} type="button">
+                                Connect Wallet
+                              </button>
+                            </div>
+                          );
+                        }
+
+                        if (chain.unsupported) {
+                          return (
+                            <button className='iekbcc0 iekbcc9 ju367v76 ju367v7r ju367v8b ju367v6k ju367v4 ju367va6 ju367vn ju367vei ju367vfx ju367vb ju367va ju367v16 ju367v1h ju367v1p ju367v8u _12cbo8i3 ju367v8r _12cbo8i4 _12cbo8i6' onClick={openChainModal} type="button">
+                              Wrong network
+                            </button>
+                          );
+                        }
+
+                        return (
+                          <div style={{ display: 'flex', justifyContent: 'align-center', gap: 12 }}>
+
+                            <button
+                              className='iekbcc0 iekbcc9 ju367v76 ju367v7r ju367v8b ju367v6k ju367v4 ju367va3 ju367vn ju367vei ju367vfu ju367vb ju367va ju367v16 ju367v1h ju367v1p ju367v8u _12cbo8i3 ju367v8r _12cbo8i4 _12cbo8i6'
+                              onClick={openChainModal}
+                              style={{ display: 'flex', alignItems: 'center' }}
+                              type="button"
+                            >
+                              <div className='iekbcc0 ju367v4 ju367va ju367v1p'>
+                                {chain.hasIcon && (
+                                  <div
+                                    style={{
+                                      background: chain.iconBackground,
+                                      width: 24,
+                                      height: 24,
+                                      borderRadius: 999,
+                                      overflow: 'hidden',
+                                      marginRight: 4,
+                                    }}
+                                  >
+                                    {chain.iconUrl && (
+                                      <img
+                                        alt={chain.name ?? 'Chain icon'}
+                                        src={chain.iconUrl}
+                                        style={{ width: 24, height: 24 }}
+                                      />
+                                    )}
+                                  </div>
+                                )}
+                                {chain.name}
+                              </div>
+                            </button>
+
+                            {
+                              smartAccount &&
+                                <button className='iekbcc0 iekbcc9 ju367v4 ju367va3 ju367vn ju367vei ju367vfu ju367va ju367v16 ju367v1h ju367v8u _12cbo8i3 ju367v8r _12cbo8i4 _12cbo8i6' onClick={handleCopy} type="button">
+                                    <div className='iekbcc0 ju367v75 ju367v7q ju367v8a ju367v6j ju367va9 ju367vcl ju367vn ju367vt ju367vw ju367vfu ju367v16 ju367v1h ju367v8u'>
+                                        <div className='iekbcc0 ju367v4 ju367va ju367v1p ju367v2a'>
+                                            AA Wallet:
+                                            <div className='iekbcc0 ju367v4 ju367va ju367v1p'>
+                                              {EllipsisMiddle({className: 'text-[16px]', suffixCount: 4, children: smartAccount || ''})}
+                                              {` (${smartAccountBalance} wBTC)`}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            }
+
+                            <button className='iekbcc0 iekbcc9 ju367v4 ju367va3 ju367vn ju367vei ju367vfu ju367va ju367v16 ju367v1h ju367v8u _12cbo8i3 ju367v8r _12cbo8i4 _12cbo8i6' onClick={openAccountModal} type="button">
+                              <div className='iekbcc0 ju367v75 ju367v7q ju367v8a ju367v6j ju367va9 ju367vcl ju367vn ju367vt ju367vw ju367vfu ju367v16 ju367v1h ju367v8u'>
+                                <div className='iekbcc0 ju367v4 ju367va ju367v1p ju367v2a'>
+                                  EOA Wallet:
+                                  <div className='iekbcc0 ju367v4 ju367va ju367v1p'>
+                                    {account.displayName}
+                                    {` (${wBTCBalance} wBTC)`}
+                                  </div>
+                                  <svg fill="none" height="7" width="14" xmlns="http://www.w3.org/2000/svg"><title>Dropdown</title><path d="M12.75 1.54001L8.51647 5.0038C7.77974 5.60658 6.72026 5.60658 5.98352 5.0038L1.75 1.54001" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" xmlns="http://www.w3.org/2000/svg"></path></svg>
+                                </div>
+                              </div>
+                            </button>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  );
+                }}
+              </ConnectButton.Custom>
             </div>
           </div>
         </div>

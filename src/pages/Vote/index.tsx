@@ -18,7 +18,7 @@ import { useForm } from "react-hook-form";
 import { Input, InputNumber, message } from "antd";
 import axios from 'axios';
 import dayjs from 'dayjs';
-import {getIpfsId, useDynamicContract, useStaticContract} from "../../hooks";
+import {getIpfsId, handleContract} from "../../hooks";
 import { useAccount, useNetwork } from "wagmi";
 import { useConnectModal, useChainModal } from "@rainbow-me/rainbowkit";
 import MDEditor from "../../components/MDEditor";
@@ -28,11 +28,12 @@ import {
   SINGLE_VOTE,
   MULTI_VOTE,
   WRONG_NET_STATUS,
-  web3AvatarUrl, VOTE_SUCCESS_MSG, CHOOSE_VOTE_MSG, WRONG_MINER_ID_MSG,
+  web3AvatarUrl, VOTE_SUCCESS_MSG, CHOOSE_VOTE_MSG, WRONG_MINER_ID_MSG, OPERATION_FAILED_MSG,
 } from "../../common/consts";
 import { timelockEncrypt, roundAt, mainnetClient, Buffer } from "../../../tlock-js/src";
 import {ProposalList, ProposalOption} from "../../common/types";
 import "./index.less";
+import {useAccountAbstraction} from "../../aa";
 
 const totalPercentValue = 100;
 
@@ -40,6 +41,7 @@ const Vote = () => {
   const { chain } = useNetwork();
   const chainId = chain?.id || 0;
   const { isConnected, address } = useAccount();
+  const { client } = useAccountAbstraction();
 
   const { id, cid } = useParams();
   const [votingData, setVotingData] = useState({} as ProposalList);
@@ -134,15 +136,14 @@ const Vote = () => {
       const optionId = await getIpfsId(encryptValue);
 
       if (isConnected) {
-        const { voteApi } = useDynamicContract(chainId);
-        const res = await voteApi(Number(id), optionId);
-        if (res.code === 200) {
+        const res = await handleContract(client,'vote', [Number(id), optionId]);
+        if (res) {
           message.success(VOTE_SUCCESS_MSG, 3);
           setTimeout(() => {
             navigate("/")
           }, 3000)
         } else {
-          message.error(res.msg)
+          message.error(OPERATION_FAILED_MSG)
         }
         setLoading(false)
       } else {

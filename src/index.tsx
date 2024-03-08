@@ -24,6 +24,7 @@ import { metaMaskWallet } from '@rainbow-me/rainbowkit/wallets';
 import { WagmiConfig, configureChains, createConfig } from "wagmi";
 import { publicProvider } from "wagmi/providers/public";
 import { walletChainList, walletConnectProjectId } from './common/consts';
+import { AccountAbstractionProvider } from './aa';
 import App from "./App";
 import { BrowserRouter } from "react-router-dom";
 
@@ -53,17 +54,19 @@ const config = createConfig({
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <BrowserRouter>
     <WagmiConfig config={config}>
-      <RainbowKitProvider
-        locale="en-US"
-        theme={darkTheme({
-          accentColor: "#7b3fe4",
-          accentColorForeground: "white",
-        })}
-        chains={chains}
-        modalSize="compact"
-      >
-      <App />
-      </RainbowKitProvider>
+      <AccountAbstractionProvider>
+        <RainbowKitProvider
+          locale="en-US"
+          theme={darkTheme({
+            accentColor: "#7b3fe4",
+            accentColorForeground: "white",
+          })}
+          chains={chains}
+          modalSize="compact"
+        >
+          <App />
+        </RainbowKitProvider>
+      </AccountAbstractionProvider>
     </WagmiConfig>
   </BrowserRouter>
 )

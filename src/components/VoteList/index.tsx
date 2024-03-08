@@ -59,7 +59,7 @@ const VoteList: React.FC<Props> = ({ voteList, chain }) => {
                       <div className="truncate text-center text-skin-link">{item.optionName}</div>
                     </div>
                     <div className="flex min-w-[110px] items-center justify-end whitespace-nowrap text-center text-skin-link xs:w-[130px] xs:min-w-[130px]">
-                      <span>{item.votes}%</span>
+                      <span>{item.votes} Vote(s)</span>
                     </div>
                   </div>
                 )

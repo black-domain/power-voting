@@ -30,11 +30,13 @@ import {
   SINGLE_VOTE,
   DEFAULT_TIMEZONE,
   STORING_DATA_MSG,
-  WRONG_EXPIRATION_TIME_MSG,
+  WRONG_EXPIRATION_TIME_MSG, OPERATION_FAILED_MSG,
 } from '../../common/consts';
-import {useDynamicContract, getIpfsId} from "../../hooks";
+import {getIpfsId, handleContract} from "../../hooks";
 import { useTimezoneSelect, allTimezones } from 'react-timezone-select';
+import {useAccountAbstraction} from "../../aa";
 import './index.less';
+
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -43,6 +45,7 @@ const CreateVote = () => {
   const {chain} = useNetwork();
   const {isConnected, address} = useAccount();
   const {openConnectModal} = useConnectModal();
+  const { client } = useAccountAbstraction();
 
   const {
     register,
@@ -112,7 +115,7 @@ const CreateVote = () => {
       expTime: expTimestamp,
       showTime: values.expTime,
       option: values.option.map((item: { value: string }) => item.value),
-      address: address,
+      address: client?.smartAccountAddress,
       chainId: chainId,
       currentTime,
     };
@@ -120,13 +123,12 @@ const CreateVote = () => {
     const cid = await getIpfsId(_values);
 
     if (isConnected) {
-      const { createVotingApi } = useDynamicContract(chainId);
-      const res = await createVotingApi(cid, expTimestamp, values.proposalType);
-      if (res.code === 200) {
+      const res = await handleContract(client,'createProposal', [cid, expTimestamp, values.proposalType]);
+      if (res) {
         message.success(STORING_DATA_MSG);
         navigate("/");
       } else {
-        message.error(res.msg);
+        message.error(OPERATION_FAILED_MSG);
       }
     } else {
       // @ts-ignore

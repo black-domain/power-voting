@@ -3,6 +3,20 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const dotenv = require('dotenv');
+
+
+let envFile = '.env';
+if (process.env.NODE_ENV === 'development') {
+  envFile = '.env';
+} else if (process.env.NODE_ENV === 'production') {
+  envFile = '.env.example';
+} else if (process.env.NODE_ENV === 'test') {
+  envFile = '.env.test';
+}
+
+const envConfig = dotenv.config({ path: envFile }).parsed;
+
 
 module.exports = {
   target:'web',
@@ -18,6 +32,9 @@ module.exports = {
       "path":require.resolve("path-browserify"),
       "os":require.resolve("os-browserify"),
       "fs":require.resolve("browserify-fs"),
+      "https":require.resolve("https-browserify"),
+      "http": require.resolve("stream-http"),
+      "zlib": require.resolve("browserify-zlib")
     },
     plugins: [
       new TsconfigPathsPlugin({
@@ -95,6 +112,10 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html',
     }),
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify(envConfig)
+    })
+
   ],
   devtool: 'source-map',
 };

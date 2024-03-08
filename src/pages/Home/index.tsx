@@ -33,7 +33,7 @@ import {
 import ListFilter from "../../components/ListFilter";
 import EllipsisMiddle from "../../components/EllipsisMiddle";
 import {useStaticContract} from "../../hooks";
-import {ProposalData, ProposalFilter, ProposalList, ProposalOption, ProposalResult} from '../../common/types';
+import {ProposalData, ProposalFilter, ProposalList, ProposalResult} from '../../common/types';
 import Loading from "../../components/Loading";
 
 dayjs.extend(utc);
@@ -78,7 +78,7 @@ const Home = () => {
     const chainId = chain?.id || 0;
     const { getLatestId, getProposal } = await useStaticContract(chainId);
     const res = await getLatestId();
-    console.log(res.data.toNumber());
+
     const total = res.data.toNumber();
     setTotal(total);
     const offset = (page - 1) * pageSize;

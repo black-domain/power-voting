@@ -73,6 +73,7 @@ const VotingResults = () => {
       const { data: { data: historyData } } = await axios.get('/api/proposal/history', {
         params,
       })
+      console.log(historyData);
       voteList = historyData.map((item: ProposalHistory) => ({
         optionName: proposalData.option[item.optionId],
         votes: item.votes,
@@ -224,8 +225,10 @@ const VotingResults = () => {
                                   </div>
                                   <div className='flex justify-end'>
                                     <div className='space-x-2'>
-                                      <span>{item.count}%</span>
+                                      <span className='whitespace-nowrap'>{item.count} Vote(s)</span>
+                                      <span>{percent}%</span>
                                     </div>
+
                                   </div>
                                 </div>
                                 <div className='relative h-2 rounded bg-[#273141]'>

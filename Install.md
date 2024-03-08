@@ -6,7 +6,7 @@
 
 2.npm 7 or later installed
 
-3.Yarn  v1 or v2 installed
+3.Yarn v1 or v2 installed
 
 4.Git
 
@@ -37,9 +37,9 @@ After yarn, you will get a 'node_modules' folder in the root directory.
 
 ### 4.Update Smart Contract Address And ABI
 
-Deploying PowerVoting contract on bobChain test network and replace the following address in ‘/src/common/consts.ts’.
+Deploying PowerVoting contract on bobChain test network and replace the following address in ‘/.env.production’.
 
-<img src="img/contract_address.png" style="zoom:50%;" />
+<img src="img/env.png" style="zoom:50%;" />
 
 If you modify the contract code, you need to update the following abi in ‘/src/common/abi’.
 
@@ -52,9 +52,9 @@ Create NFT storage key by https://nft.storage/manage/
 
 Create wallet connect project id by https://www.rainbowkit.com/docs/migration-guide#012x-breaking-changes
 
-Replace the following keys in ‘/src/common/consts.ts’
+Replace the following keys in ‘/.env.production’
 
-<img src="img/key.png" style="zoom:50%;" />
+<img src="img/env.png" style="zoom:50%;" />
 
 
 ### 6.Build And Package
@@ -62,7 +62,7 @@ Replace the following keys in ‘/src/common/consts.ts’
 Build  with the following command:
 
 ```
-yarn build
+yarn build:pro
 ```
 
 After building, you will get a 'dist' folder in the root directory.
