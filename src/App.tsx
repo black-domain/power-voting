@@ -12,78 +12,101 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import React,{ useState, useEffect, useRef } from "react";
-import {useRoutes, useNavigate, Link} from "react-router-dom";
-import axios from "axios";
+import { SearchOutlined } from '@ant-design/icons';
 import {
   ConnectButton,
   useConnectModal
 } from "@rainbow-me/rainbowkit";
-import { ConfigProvider, theme, Modal, Dropdown } from 'antd';
-import { useNetwork, useAccount } from "wagmi";
+import { ConfigProvider, Dropdown, FloatButton, Input, Modal, theme } from 'antd';
+import enUS from 'antd/locale/en_US';
+import zhCN from 'antd/locale/zh_CN';
+import axios from "axios";
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
+import React, { useEffect, useRef, useState } from "react";
 import Countdown from 'react-countdown';
-import routes from "./router";
-import Footer from './components/Footer';
-import "./common/styles/reset.less";
+import { useTranslation } from 'react-i18next';
+import { Link, useLocation, useNavigate, useRoutes } from "react-router-dom";
 import "tailwindcss/tailwind.css";
-import {useStaticContract} from "./hooks";
-import Loading from "./components/Loading";
-import {STORING_DATA_MSG} from "./common/consts";
-
-
+import { useAccount } from "wagmi";
+import timezones from '../public/json/timezons.json';
+import { STORING_DATA_MSG } from "./common/consts";
+import { useCheckFipEditorAddress, useVoterInfoSet } from "./common/hooks";
+import { useCurrentTimezone, useVoterInfo, useVotingList } from "./common/store";
+import "./common/styles/reset.less";
+import Footer from './components/Footer';
+import './lang/config';
+import routes from "./router";
 const App: React.FC = () => {
-  const { chain } = useNetwork();
-  const { address, isConnected} = useAccount();
-  const {openConnectModal} = useConnectModal();
+  // Destructure values from custom hooks
+  const { chain, address, isConnected } = useAccount();
+  const chainId = chain?.id || 0;
+  const prevAddressRef = useRef(address);
+  const { openConnectModal } = useConnectModal();
   const navigate = useNavigate();
+
+  // Render routes based on URL
   const element = useRoutes(routes);
-  const [showButton, setShowButton] = useState(false);
-  const [spinning, setSpinning] = useState(false);
+
+  const isLanding = false;//location.pathname === "/" || element?.props?.match?.route?.path === "*"
+  // State variables
   const [expirationTime, setExpirationTime] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
+  const [language, setLanguage] = useState<any>({ meaning: 'en', value: enUS });
+  const [isFocus, setIsFocus] = useState<boolean>(false); // Determine whether the mouse has clicked on the search box
+  const [searchValue, setSearchValue] = useState<string>(); // Stores the value of the search box
+  // Get the user's timezone
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const text = timezones.find((item: any) => item.value === timezone)?.text;
 
-  const prevAddressRef = useRef(address);
-  const scrollRef = useRef(null);
+  // Extract GMT offset from timezone
+  const regex = /(?<=\().*?(?=\))/g;
+  const GMTOffset = text?.match(regex);
 
-  const scrollToTop = () => {
-    const element = scrollRef.current;
-    // @ts-ignore
-    element.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  };
+  // Get voter information using custom hook
+  const { voterInfo } = useVoterInfoSet(chainId, address);
 
+  const { isFipEditorAddress } = useCheckFipEditorAddress(chainId, address);
+
+  // Update voter information in state
+  const setVoterInfo = useVoterInfo((state: any) => state.setVoterInfo);
+  const setVotingList = useVotingList((state: any) => state.setVotingList);
+  // Update current timezone in state
+  const setTimezone = useCurrentTimezone((state: any) => state.setTimezone);
+
+  const { pathname } = useLocation();
+  const { t, i18n } = useTranslation();
   useEffect(() => {
-    const handleScroll = () => {
-      const element = scrollRef.current;
-      // @ts-ignore
-      setShowButton(element.scrollTop > 300)
-    };
-
-    // @ts-ignore
-    scrollRef.current.addEventListener('scroll', handleScroll);
-
-    return () => {
-      // @ts-ignore
-      scrollRef.current.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-
-  useEffect(() => {
-    scrollToTop();
-  }, [location]);
-
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  // Reload the page if address changes
   useEffect(() => {
     const prevAddress = prevAddressRef.current;
-    if (prevAddress !== address) {
+    if (address && prevAddress !== address) {
       window.location.reload();
     }
   }, [address]);
 
 
+  // Update voter information when available
+  useEffect(() => {
+    if (voterInfo) {
+      setVoterInfo(voterInfo);
+    }
+  }, [voterInfo]);
+
+  // Set user's timezone based on GMT offset
+  useEffect(() => {
+    if (GMTOffset) {
+      setTimezone(GMTOffset);
+    }
+  }, [GMTOffset])
+
+  /**
+   * Handle delegation action
+   */
   const handleDelegate = async () => {
+    // Retrieve ucanStorageData from localStorage
     const ucanStorageData = JSON.parse(localStorage.getItem('ucanStorage') || '[]');
     const ucanIndex = ucanStorageData?.findIndex((item: any) => item.address === address);
     if (ucanIndex > -1) {
@@ -100,24 +123,29 @@ const App: React.FC = () => {
       }
     }
 
-    setSpinning(true);
+    // Prompt user to connect if not already connected
     if (!isConnected) {
       openConnectModal && openConnectModal();
-      setSpinning(false);
       return;
     }
-    const chainId = chain?.id || 0;
-    const { getOracleAuthorize }  = await useStaticContract(chainId);
-    const { data: { githubAccount, ucanCid } } = await getOracleAuthorize(address);
-    setSpinning(false);
-    const isGithubType = !!githubAccount;
-    if (ucanCid) {
-      const { data } = await axios.get(`https://${ucanCid}.ipfs.nftstorage.link/`);
+
+
+    if (!voterInfo) {
+      navigate('/ucanDelegate/add');
+      return
+    }
+    // Determine if the user has a GitHub account
+    const isGithubType = !!voterInfo[0];
+    if (voterInfo[2]) {
+      // Fetch data from IPFS using voter's identifier
+      const { data } = await axios.get(`https://${voterInfo[2]}.ipfs.w3s.link/`);
       if (isGithubType) {
-        const regex = /\/([^\/]+)\/([^\/]+)\/git\/blobs\/(\w+)/;
+        // Process GitHub data and navigate to appropriate page
+        const regex = /\/([^/]+)\/([^/]+)\/git\/blobs\/(\w+)/;
         const result = data.match(regex);
         const aud = result[1];
-        navigate('/ucanDelegate/delete', { state: {
+        navigate('/ucanDelegate/delete', {
+          state: {
             params: {
               isGithubType,
               aud,
@@ -125,11 +153,14 @@ const App: React.FC = () => {
             }
           }
         });
-      } else {
+      }
+      else {
+        // Process non-GitHub data and navigate to appropriate page
         const decodeString = atob(data.split('.')[1]);
         const payload = JSON.parse(decodeString);
         const { aud, prf } = payload;
-        navigate('/ucanDelegate/delete', { state: {
+        navigate('/ucanDelegate/delete', {
+          state: {
             params: {
               isGithubType,
               aud,
@@ -139,120 +170,208 @@ const App: React.FC = () => {
         });
       }
     } else {
+      // Navigate to add delegate page if no voter information is available
       navigate('/ucanDelegate/add');
     }
   }
 
-  const handleMinerId = () => {
+  const handleJump = (route: string) => {
     if (!isConnected) {
       openConnectModal && openConnectModal();
-      setSpinning(false);
       return;
     }
-    navigate('/minerid');
+    navigate(route);
   }
 
-  const items = [
+  const items: any = [
     {
-      key: '1',
+      key: 'ucan',
       label: (
         <a
           onClick={handleDelegate}
         >
-          UCAN Delegates
+          {t('content.UCANDelegates')}
         </a>
       ),
     },
     {
-      key: '2',
+      key: 'minerId',
       label: (
         <a
-          onClick={handleMinerId}
+          onClick={() => { handleJump('/minerid') }}
         >
-          Miner IDs Management
+          {t('content.minerIDsManagement')}
         </a>
       ),
     },
   ];
 
-  return (
-    <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
-      <div className="layout font-body" id='scrollBox' ref={scrollRef}>
-      <header className='h-[96px] bg-[#273141]'>
-        <div className='w-[1000px] h-[96px] mx-auto flex items-center justify-between'>
-          <div className='flex items-center'>
-            <div className='flex-shrink-0'>
-              <Link to='/'>
-                <img className="logo" src="/images/logo.png" alt=""/>
-              </Link>
-            </div>
-            <div className='ml-6 flex items-baseline space-x-20'>
-              <Link
-                to='/'
-                className='text-white text-2xl font-semibold hover:opacity-80'
-              >
-                Power Voting
-              </Link>
-            </div>
-          </div>
-          <div className='flex items-center'>
-            <Dropdown
-              menu={{
-                items,
-              }}
-              placement="bottomLeft"
-              arrow
-            >
-              <button
-                className="h-[40px] bg-sky-500 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-xl mr-4"
-              >
-                Tools
-              </button>
-            </Dropdown>
-
-            <div className="connect flex items-center">
-              <ConnectButton />
-            </div>
-          </div>
-          <Modal
-            width={520}
-            open={modalOpen}
-            title={false}
-            destroyOnClose={true}
-            closeIcon={false}
-            onCancel={() => { setModalOpen(false) }}
-            footer={false}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <p>{STORING_DATA_MSG} Please wait:&nbsp;
-              <Countdown
-                date={expirationTime}
-                renderer={({ minutes, seconds, completed }) => {
-                  if (completed) {
-                    // Render a completed state
-                    setModalOpen(false);
-                  } else {
-                    // Render a countdown
-                    return <span>{minutes}:{seconds}</span>;
-                  }
-                }}
-              />
-            </p>
-          </Modal>
-        </div>
-      </header>
-      <div className='content w-[1000px] mx-auto pt-10 pb-10'>
+  if (isFipEditorAddress) {
+    items.push({
+      key: '3',
+      label: 'FIP Editor Management',
+      children: [
         {
-          spinning ? <Loading /> : element
-        }
-      </div>
-      <Footer/>
-        <button onClick={scrollToTop} className={`${showButton ? '' : 'hidden'} fixed bottom-[6rem] right-[6rem] z-40  p-2 bg-gray-600 text-white rounded-full hover:bg-gray-700 focus:outline-none`}>
-          <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M12 3l-8 8h5v10h6V11h5z" fill="currentColor" />
-          </svg>
-        </button>
+          key: '3-1',
+          label: (
+            <a
+              onClick={() => { handleJump('/fip-editor/propose') }}
+            >
+              {t('content.propose')}
+            </a>
+          ),
+        },
+        {
+          key: '3-2',
+          label: (
+            <a
+              onClick={() => { handleJump('/fip-editor/approve') }}
+            >
+              {t('content.approve')}
+            </a>
+          ),
+        },
+        {
+          key: '3-3',
+          label: (
+            <a
+              onClick={() => { handleJump('/fip-editor/revoke') }}
+            >
+              {t('content.revoke')}
+            </a>
+          ),
+        },
+      ],
+    })
+  }
 
+  const languageOptions = [
+    { label: 'EN', value: 'en' },
+    { label: '中文', value: 'zh' },
+  ];
+  const changeLanguage = (value: string) => {
+    i18n.changeLanguage(value)
+    if (value === 'en') {
+      setLanguage({ meaning: 'en', value: enUS });
+      dayjs.locale('en');
+    } else if (value === 'zh') {
+      setLanguage({ meaning: 'zh', value: zhCN });
+      dayjs.locale('zh-cn');
+    }
+  };
+  const searchKey = async (value?: string) => {
+    const params = {
+      page: 1,
+      pageSize: 5,
+      searchKey: value
+    }
+    const { data: { data: votingData } } = await axios.get('/api/proposal/list', { params })
+    setVotingList({ votingList: votingData.list || [], totalPage: votingData.total, searchKey: value })
+  }
+  useEffect(() => {
+    searchKey()
+  },[])
+  return (
+    <ConfigProvider theme={{
+      algorithm: theme.defaultAlgorithm,
+      components: {
+        Radio: {
+          buttonSolidCheckedBg: ''
+        }
+      }
+    }} locale={language.value}>
+      <div className="layout font-body">
+        {!isLanding && <header className='h-[96px] bg-[#ffffff] border-b border-solid border-[#DFDFDF]'>
+          <div className='w-full h-[88px] px-40 flex items-center justify-between'>
+            <div className='flex items-center'>
+              <div className='flex-shrink-0'>
+                <Link to='/'>
+                  <img className="logo" src="/images/logo.png" alt="" />
+                </Link>
+              </div>
+              <div className='ml-6 flex items-baseline space-x-20'>
+                <Link
+                  to='/'
+                  className='text-black text-2xl font-semibold hover:opacity-80'
+                >
+                  {t('content.powerVoting')}
+                </Link>
+              </div>
+              <div className="ml-6">
+                <Input
+                  placeholder="Search Proposals"
+                  size="large"
+                  prefix={<SearchOutlined onClick={() => searchKey(searchValue)} className={`${isFocus ? "text-[#1677ff]" : "text-[#8b949e]"} text-xl hover:text-[#1677ff]`} />}
+                  onClick={() => setIsFocus(true)}
+                  onBlur={() => setIsFocus(false)}
+                  onChange={(e) => setSearchValue(e.currentTarget.value)}
+                  onPressEnter={() => searchKey(searchValue)}
+                  className={`${isFocus ? 'w-[270px]' : "w-[180px]"} font-medium text-base item-center text-slate-800 bg-[#f7f7f7] rounded-lg`}
+                />
+              </div>
+            </div>
+            <div className='flex items-center'>
+              <Dropdown
+                menu={{
+                  items,
+                }}
+                placement="bottomLeft"
+                arrow
+              >
+                <button
+                  className="h-[40px] bg-sky-500 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-xl mr-4"
+                >
+                  {t('content.tools')}
+                </button>
+              </Dropdown>
+              <div className="connect flex items-center">
+                <ConnectButton showBalance={false} />
+                <div className='px-4 py-2 h-full flex flex-nowrap text-sm'>
+                  {languageOptions.map((item) => {
+                    return (
+                      <div className={`h-full mr-1.5 cursor-pointer text-black font-semibold ${item.value === language.meaning ? 'border-solid border-b-2 border-current' : 'border-none'}`} onClick={() => changeLanguage(item.value)}>
+                        <div className='h-5 leading-6 text-center my-*'>{item.label}</div>
+                      </div>
+                    )
+                  })
+                  }
+                </div>
+              </div>
+            </div>
+            <Modal
+              width={520}
+              open={modalOpen}
+              title={false}
+              destroyOnClose={true}
+              closeIcon={false}
+              onCancel={() => { setModalOpen(false) }}
+              footer={false}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <p>{t(STORING_DATA_MSG)} {t('content.pleaseWait')}:&nbsp;
+                <Countdown
+                  date={expirationTime}
+                  renderer={({ minutes, seconds, completed }) => {
+                    if (completed) {
+                      // Render a completed state
+                      setModalOpen(false);
+                    } else {
+                      // Render a countdown
+                      return <span>{minutes}:{seconds}</span>;
+                    }
+                  }}
+                />
+              </p>
+            </Modal>
+          </div>
+        </header>}
+        <div className='content w-[1000px] mx-auto pt-10 pb-10'>
+          {
+            element
+          }
+        </div>
+        <Footer />
+        <FloatButton.BackTop style={{ bottom: 100 }} />
       </div>
     </ConfigProvider>
   )

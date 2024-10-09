@@ -19,11 +19,6 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
-    fallback:{
-      "path":require.resolve("path-browserify"),
-      "os":require.resolve("os-browserify"),
-      "fs":require.resolve("browserify-fs")
-    },
     plugins: [
       new TsconfigPathsPlugin({
         configFile: './tsconfig.json',
@@ -32,17 +27,17 @@ module.exports = {
   },
   devServer: {
     static: path.join(__dirname, 'public'),
-    port: 3001,
+    port: 4001,
     open: true,
     historyApiFallback: true,
     proxy: {
       '/api': {
-        target: 'http://192.168.11.94:9999/power_voting',
+        target: 'http://192.168.11.94:10000/power_voting',
         changeOrigin: true,
         pathRewrite: {
           '^/api': '/api'
         }
-      }
+      },
     }
   },
   stats: {
@@ -82,6 +77,14 @@ module.exports = {
           "less-loader"
         ]
       },
+      {
+        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+        loader: 'file-loader',
+        options: {
+          name: '[name].[ext]',
+          outputPath: 'fonts/',
+        },
+      },
     ],
   },
   plugins: [
@@ -96,6 +99,10 @@ module.exports = {
         {
           from: 'public/images',
           to: 'images'
+        },
+        {
+          from: 'public/fonts',
+          to: 'fonts'
         }
       ]
     }),

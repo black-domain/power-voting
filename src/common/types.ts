@@ -13,8 +13,11 @@
 
 export interface ProposalFilter {
   value: number
-  color: string,
   label: string
+  bgColor: string
+  textColor: string
+  borderColor: string
+  dotColor: string
 }
 export interface ProposalOption {
   name: string
@@ -41,6 +44,7 @@ export interface ProposalData {
   startTime: number
   expTime: number
   proposalType: number
+  proposalStatus?: number
   proposalResults: ProposalResult[]
 }
 
@@ -48,9 +52,47 @@ export interface ProposalList extends ProposalData {
   option: ProposalOption[]
   name: string
   address: string
+  githubName: string
+  currentTime: number
+  githubAvatar: string
   descriptions: string
   proposalStatus: number
   showTime: string
   GMTOffset: string[]
   voteStatus?: number
+  subStatus: number
+}
+
+export interface ProposalDraft {
+  timezone: string
+  Time: string
+  name: string
+  descriptions: string
+  Option: string
+  Address: string
+  ChainId: number,
+  startTime:number,
+}
+export interface VotingList{
+  proposalId: number, 
+  cid: string, 
+  address: string, 
+  startTime: number, 
+  expTime: number, 
+  chainId: number, 
+  name: string, 
+  timezone: string, 
+  descriptions: string, 
+  githubName: string, 
+  githubAvatar: string, 
+  gmtOffset: string, 
+  currentTime: number, 
+  createdAt: number, 
+  updatedAt: number, 
+  voteResult: Array<any>, 
+  time: Array<any>, 
+  option: Array<string>, 
+  showTime: Array<any>, 
+  status: number, 
+  voteCount: number 
 }
