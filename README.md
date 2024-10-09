@@ -39,7 +39,7 @@ Power Oracle will request raw data from FileCoin, GitHub and other data sources 
 ![](img/ucan1.png)
 ![](img/ucan2.png)
 
-## 9. Install
+## 9. Deploy
 
 #### 1. Environment and Development Tools
 
