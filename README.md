@@ -2,13 +2,13 @@
 
 ## 1. Overview
 
-Power Voting dApp is implemented according to [Filecoin Community Voting Specs](https://docs.google.com/document/d/13910NE-O3mUQ6rztt6f3xe7hwW_aS-xaPW_zHuTpBW4/edit#heading=h.4kbcnjlru68f). It utilizes Drand Timelock technology to achieve fair and private voting. It supports voting for multiple roles such as Token Holders, Storage Providers, Clients and Developers, and casts the votes of different roles to uniform voting power.
+Power Voting dApp is implemented according to [Filecoin Community Voting Specs](https://docs.google.com/document/d/13910NE-O3mUQ6rztt6f3xe7hwW_aS-xaPW_zHuTpBW4/edit#heading=h.4kbcnjlru68f). It utilizes Drand Timelock technology to achieve fair and private voting. It supports voting for multiple roles including Token Holders, Storage Providers, Clients and Developers. Different roles are given different voting weights according to their contributions or token holdings. Power Voting dApp allows different roles with different voting weights to cast the votes and then unify voting power.
 
 ## 2. Problem
 
 In the community voting process governed by DAO, since the voting data of other community members can be seen before the vote counting time, the community members will be affected by the existing voting data before voting, and some members will even take advantage of a large number of voting rights in their hands to vote at the end of the voting process to make the voting results are reversed, resulting in unfair voting.
 
-In the centralized voting process, since the vote counting power is in the hands of the centralized organization, it will cause problems such as vote fraud and black box operation of vote counting, resulting in the voting results being manipulated by others, which cannot truly reflect the wishes of the community.
+In the centralized voting process, since the vote counting power is in the hands of the centralized organization, it will cause problems such as vote fraud and black box operation of vote counting, resulting in the voting results being manipulated by others, which cannot truly reflect the views of the community.
 
 ## 3. Solution
 
@@ -24,7 +24,7 @@ When creating a proposal, the creator will enter a voting expiration time, and P
 
 ## 5. Voting Power Snapshot
 
-Power Oracle will request raw data from FileCoin, GitHub and other data sources to calculate role identity and voting power and save them into Power Oracle contracts. SP and Client respectively invoke the `PowerAPI.minerRawPower(filActorld)` and `DataCapAPI.balance(filActorld)` interfaces to retrieve power. Power Oracle contracts will store 60 days history of voting power. When users vote, only the percentage is recorded, not the actual voting power. During the vote counting process, a random weight will be selected from the 60 days history and multiplied by the percentage to calculate the vote.
+Power Oracle will request raw data from FileCoin, GitHub and other data sources to identify roles and calculate their voting weights and save them into Power Oracle contracts. SP and Client respectively invoke the `PowerAPI.minerRawPower(filActorld)` and `DataCapAPI.balance(filActorld)` interfaces to retrieve power. Power Oracle contracts will store 60-day history of voting power. When users vote, only the percentage is recorded, not the actual voting power. During the vote counting process, a random weight will be selected from the 60 days history and multiplied by the percentage to calculate the vote.
 
 ## 6. Power Voting Flowchart
 
@@ -41,7 +41,7 @@ Power Oracle will request raw data from FileCoin, GitHub and other data sources 
 
 ## 9. Install
 
-#### 1.Environment and Development Tools
+#### 1. Environment and Development Tools
 
 1.Node.js 14 or later installed
 
@@ -53,7 +53,7 @@ Power Oracle will request raw data from FileCoin, GitHub and other data sources 
 
 <img src="./img/git.png" style="zoom:50%;" alt="" />
 
-#### 2.Download Source Code
+#### 2. Download Source Code
 
 Download the source code with the following command:
 
@@ -61,7 +61,7 @@ Download the source code with the following command:
 git clone https://github.com/black-domain/power-voting.git
 ```
 
-#### 3.Install Dependencies
+#### 3. Install Dependencies
 
 Install dependencies with the following command:
 
@@ -74,7 +74,7 @@ After yarn, you will get a 'node_modules' folder in the root directory.
 
 <img src="img/node_modules.png" style="zoom:50%;"  alt="" />
 
-#### 4.Update Keys in .env.example
+#### 4. Update Keys in .env.example
 
 Deploying PowerVoting and Oracle contract on Filecoin main network and replace the following address in ‘/.env.example’
 
