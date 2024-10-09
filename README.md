@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-Power Voting dApp is implemented according to ![Filecoin Community Voting Specs](https://docs.google.com/document/d/13910NE-O3mUQ6rztt6f3xe7hwW_aS-xaPW_zHuTpBW4/edit#heading=h.4kbcnjlru68f). It utilizes Drand Timelock technology to achieve fair and private voting. It supports voting for multiple roles such as Token Holders, Storage Providers, Clients and Developers, and casts the votes of different roles to uniform voting power.
+Power Voting dApp is implemented according to [Filecoin Community Voting Specs](https://docs.google.com/document/d/13910NE-O3mUQ6rztt6f3xe7hwW_aS-xaPW_zHuTpBW4/edit#heading=h.4kbcnjlru68f). It utilizes Drand Timelock technology to achieve fair and private voting. It supports voting for multiple roles such as Token Holders, Storage Providers, Clients and Developers, and casts the votes of different roles to uniform voting power.
 
 ## 2. Problem
 
